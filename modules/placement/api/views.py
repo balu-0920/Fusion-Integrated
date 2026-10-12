@@ -44,14 +44,14 @@ from modules.placement.services import postings as posting_service
 from modules.placement.services import recruiters as recruiter_service
 from modules.placement.services import stats as stats_service
 
-MODULE = HasModuleGrant("placement_cell")
+MODULE = HasModuleGrant("placement")
 
-P_VIEW_POSTINGS = "placement_cell.job_posting.view"
-P_MANAGE_POSTINGS = "placement_cell.job_posting.manage"
-P_VIEW_APPS = "placement_cell.application.view"
-P_VIEW_SELF = "placement_cell.application.view_self"
-P_MANAGE_COMPANIES = "placement_cell.company.manage"
-P_VIEW_REPORTS = "placement_cell.report.view"
+P_VIEW_POSTINGS = "placement.job_posting.view"
+P_MANAGE_POSTINGS = "placement.job_posting.manage"
+P_VIEW_APPS = "placement.application.view"
+P_VIEW_SELF = "placement.application.view_self"
+P_MANAGE_COMPANIES = "placement.company.manage"
+P_VIEW_REPORTS = "placement.report.view"
 
 
 def _actor(request):
@@ -281,7 +281,7 @@ class ApplicationTransitionView(_Scoped, APIView):
 
 @extend_schema(request=s.ApplySerializer, responses=s.ApplicationSerializer)
 class ApplyView(_Scoped, APIView):
-    permission_classes = [MODULE, HasPermission("placement_cell.application.create")]
+    permission_classes = [MODULE, HasPermission("placement.application.create")]
     throttle_scope = "apply"
 
     def post(self, request):
@@ -473,7 +473,7 @@ class OfferIssueView(_Scoped, APIView):
 
 @extend_schema(request=s.OfferRespondSerializer, responses=s.OfferSerializer)
 class OfferRespondView(_Scoped, APIView):
-    permission_classes = [MODULE, HasPermission("placement_cell.offer.respond")]
+    permission_classes = [MODULE, HasPermission("placement.offer.respond")]
 
     def post(self, request, pk):
         payload = s.OfferRespondSerializer(data=request.data)
@@ -505,7 +505,7 @@ class AnnouncementListView(_Scoped, generics.ListCreateAPIView):
 @extend_schema(request=s.WithdrawSerializer, responses=s.AnnouncementSerializer)
 class AnnouncementWithdrawView(_Scoped, APIView):
     permission_classes = [MODULE,
-                          HasPermission("placement_cell.announcement.publish")]
+                          HasPermission("placement.announcement.publish")]
 
     def post(self, request, pk):
         payload = s.WithdrawSerializer(data=request.data)
