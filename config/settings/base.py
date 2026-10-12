@@ -81,6 +81,10 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "fusion_auth",
     "devtools",
+    "modules.accesscontrol",
+    "modules.directory",
+    "modules.placement",
+    "modules.elm",  # ADD THIS LINE
 ]
 
 # 2. Add 127.0.0.1 to CORS

@@ -1,0 +1,1 @@
+export default function ApplyPage() { return <div>Apply for Leave</div>; }

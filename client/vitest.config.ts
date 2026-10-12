@@ -1,14 +1,14 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: ["src/test/setup.ts"],
-    css: false,
-    restoreMocks: true,
-    include: ["src/**/*.test.{ts,tsx}"],
+  server: {
+    port: 5173,
+    proxy: { 
+      "/api": { target: "http://127.0.0.1:8002", changeOrigin: true },
+      "/static": { target: "http://127.0.0.1:8002", changeOrigin: true }
+    },
   },
+  build: { outDir: "dist", sourcemap: "hidden" },
 });

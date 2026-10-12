@@ -1,0 +1,1 @@
+export default function ApprovalsPage() { return <div>Leave Approvals</div>; }

@@ -12,4 +12,10 @@ export const MODULE_REGISTRY: Record<string, ModuleManifest> = {
     basePath: "/placement",
     load: () => import("../modules/placement/routes"),
   },
+  // ADD THIS ELM ENTRY:
+  elm: {
+    code: "elm",
+    basePath: "/elm",
+    load: () => import("../modules/elm/routes"),
+  },
 };
