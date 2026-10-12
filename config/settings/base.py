@@ -77,9 +77,24 @@ THIRD_PARTY_APPS = [
 ]
 
 # No models. Installed so its AppConfig runs and registers the session checks.
+# 1. Add devtools
 LOCAL_APPS = [
     "fusion_auth",
+    "devtools",
 ]
+
+# 2. Add 127.0.0.1 to CORS
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = env_list("DJANGO_CORS_ALLOWED_ORIGINS", ["http://localhost:5173", "http://127.0.0.1:5173"])
+CORS_ALLOW_CREDENTIALS = True
+
+# 3. Clean up syntax artifacts
+#: How long a cached directory row may be trusted before it is refetched.
+DIRECTORY_MAX_AGE_SECONDS = env_int("DIRECTORY_MAX_AGE_SECONDS", 60)
+
+# No multipart endpoints remain, so this only caps the JSON body.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024
+
 
 # Each module is an independent Django app: own tables, migrations and contract.
 PLATFORM_MODULES = [
