@@ -231,7 +231,6 @@ class ApplicationListView(_Scoped, generics.ListAPIView):
         return (self.get_paginated_response(data) if page is not None
                 else Response(data))
 
-
 @extend_schema(request=s.BulkTransitionSerializer,
                responses=s.BulkResultSerializer)
 class ApplicationBulkTransitionView(_Scoped, APIView):
@@ -243,7 +242,6 @@ class ApplicationBulkTransitionView(_Scoped, APIView):
     """
 
     permission_classes = [MODULE]
-    throttle_scope = "apply"
 
     def post(self, request):
         payload = s.BulkTransitionSerializer(data=request.data)
