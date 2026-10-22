@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.db.models import Q
 from modules.elm.models import LeaveApplication, LeaveBalance, HolidayCalendar
-from core.api.exceptions import ConflictError, BadRequestError
+from core.api.exceptions import ConflictError, BadRequestError,PermissionDeniedError
 
 def calculate_leave_days(category: str, start_date, end_date, is_first_half, is_second_half) -> Decimal:
     """BR-EL-010 and BR-EL-011: Continuous counting vs working days."""
@@ -77,5 +77,58 @@ def withdraw_leave(application_id: int, actor_id: int):
         raise ConflictError("Cannot withdraw a finalized request.")
     
     app.status = 'withdrawn'
+    app.save(update_fields=['status', 'updated_at'])
+    return app
+
+
+def handle_substitute_response(application_id: int, actor_id: int, action: str, is_director_applicant: bool):
+    """EL-UC-002: Process substitute consent and route accordingly."""
+    app = LeaveApplication.objects.get(id=application_id, status='awaiting_substitute')
+    
+    if app.substitute_id != actor_id:
+        raise PermissionDeniedError("You are not the nominated substitute.")
+        
+    if action == 'accept':
+        # BR-EL-020 & BW-EL-08: Director bypasses Unit Head
+        app.status = 'awaiting_director_self_sanction' if is_director_applicant else 'awaiting_unit_head'
+    elif action == 'decline':
+        app.status = 'applicant_action_required'
+        
+    app.save(update_fields=['status', 'updated_at'])
+    return app
+
+def unit_head_review(application_id: int, actor_id: int, action: str, establishment_configured: bool):
+    """EL-UC-003: Unit Head decision or recommendation."""
+    app = LeaveApplication.objects.get(id=application_id, status='awaiting_unit_head')
+    
+    # BR-EL-016: Final decision for CL / RH
+    if app.category in ['cl', 'rh']:
+        if action not in ['approve', 'reject']:
+            raise BadRequestError("Unit Head must approve or reject CL/RH.")
+        app.status = 'approved' if action == 'approve' else 'rejected'
+        
+    # BR-EL-017: Recommendation for Higher Sanction (SCL, EL, COL, VL)
+    else:
+        if action not in ['recommend', 'not_recommend']:
+            raise BadRequestError("Unit Head can only recommend/not recommend higher-sanction leaves.")
+        
+        # BR-EL-018: Route forward regardless of recommendation
+        app.status = 'awaiting_establishment_routing' if establishment_configured else 'awaiting_final_sanction_decision'
+
+    app.save(update_fields=['status', 'updated_at'])
+    return app
+
+def final_sanction_decision(application_id: int, actor_id: int, action: str):
+    """EL-UC-005: Final competent authority decision."""
+    app = LeaveApplication.objects.get(id=application_id, status__in=['awaiting_final_sanction_decision', 'awaiting_director_self_sanction'])
+    
+    if action not in ['approve', 'reject']:
+        raise BadRequestError("Invalid sanctioning action.")
+        
+    app.status = 'approved' if action == 'approve' else 'rejected'
+    
+    # Note: In a full implementation, balance deduction logic (BR-EL-002 to BR-EL-009) 
+    # would be executed here upon approval.
+    
     app.save(update_fields=['status', 'updated_at'])
     return app
