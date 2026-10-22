@@ -11,4 +11,6 @@ urlpatterns = [
     path("applications/<int:pk>/cancel", v.LeaveCancelView.as_view(), name="elm-cancel"),
     path("applications/<int:pk>/resumption-review", v.ResumptionReviewView.as_view(), name="elm-resumption-review"),
     # path("applications/<int:pk>/resume", v.LeaveResumptionView.as_view(), name="elm-resume"),
+    path("applications/mine", v.LeaveHistoryView.as_view(), name="elm-history"),
+    path("applications/pending", v.PendingApprovalsView.as_view(), name="elm-pending-approvals"),
 ]

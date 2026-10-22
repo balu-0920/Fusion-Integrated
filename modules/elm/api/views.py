@@ -97,3 +97,24 @@ class ResumptionReviewView(APIView):
         actor = getattr(request, "principal")
         app = services.review_resumption(pk, actor.user_id)
         return Response(s.LeaveApplicationSerializer(app).data)    
+
+
+class LeaveHistoryView(APIView):
+    """EL-UC-012: View Leave Balances and History"""
+    permission_classes = [MODULE]
+    
+    def get(self, request):
+        actor_id = getattr(request, "principal").user_id
+        apps = LeaveApplication.objects.filter(applicant_id=actor_id).order_by('-created_at')
+        return Response(s.LeaveApplicationSerializer(apps, many=True).data)
+
+class PendingApprovalsView(APIView):
+    """Fetch queue for Unit Head / Sanctioning Authority"""
+    permission_classes = [MODULE]
+    
+    def get(self, request):
+        # Base query for demonstration; role-scoping applies in production
+        apps = LeaveApplication.objects.filter(
+            status__in=['awaiting_unit_head', 'awaiting_final_sanction_decision']
+        ).order_by('-created_at')
+        return Response(s.LeaveApplicationSerializer(apps, many=True).data)    

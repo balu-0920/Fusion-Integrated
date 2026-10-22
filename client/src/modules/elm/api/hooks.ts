@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+
+import { useQuery } from "@tanstack/react-query";
 import { ApplyPayload, LeaveApplication } from "./types";
 
 // Note: Fusion uses standard axios instances configured with CSRF tokens.
@@ -36,6 +38,40 @@ export function useWithdrawLeave() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["elm", "history"] });
+    },
+  });
+}
+
+
+export function useLeaveHistory() {
+  return useQuery({
+    queryKey: ["elm", "history"],
+    queryFn: async () => {
+      const response = await axios.get<LeaveApplication[]>("/api/v1/elm/applications/mine");
+      return response.data;
+    },
+  });
+}
+
+export function usePendingApprovals() {
+  return useQuery({
+    queryKey: ["elm", "approvals"],
+    queryFn: async () => {
+      const response = await axios.get<LeaveApplication[]>("/api/v1/elm/applications/pending");
+      return response.data;
+    },
+  });
+}
+
+export function useReviewLeave() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, action }: { id: number; action: string }) => {
+      const response = await axios.post(`/api/v1/elm/applications/${id}/unit-head-review`, { action });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["elm", "approvals"] });
     },
   });
 }
