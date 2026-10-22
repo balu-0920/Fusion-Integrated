@@ -132,3 +132,32 @@ def final_sanction_decision(application_id: int, actor_id: int, action: str):
     
     app.save(update_fields=['status', 'updated_at'])
     return app
+
+def request_cancellation(application_id: int, actor_id: int):
+    """EL-UC-008: Request cancellation of approved leave before start."""
+    app = LeaveApplication.objects.get(id=application_id, applicant_id=actor_id, status='approved')
+    
+    # BR-EL-023: Cancellation only valid before start date
+    if timezone.now().date() >= app.start_date:
+        raise BadRequestError("Leave has already started; use extension or resumption instead.")
+    
+    app.status = 'cancellation_pending_unit_head'
+    app.save(update_fields=['status', 'updated_at'])
+    return app
+
+def review_resumption(application_id: int, actor_id: int):
+    """EL-UC-011: Review resumption and determine sync requirements."""
+    app = LeaveApplication.objects.get(id=application_id, status='resumption_review_pending')
+    
+    # BR-EL-028: Normal, Early, and Late Resumption Outcomes
+    if app.actual_resumption_date == app.end_date:
+        app.status = 'resumption_reviewed_no_adjustment'
+    elif app.actual_resumption_date < app.end_date:
+        app.status = 'resumption_reviewed_early_return'
+        # TODO: Restore unused balance fraction
+    else:
+        app.status = 'resumption_reviewed_late_return'
+        # TODO: Deduct additional balance fraction
+        
+    app.save(update_fields=['status', 'updated_at'])
+    return app

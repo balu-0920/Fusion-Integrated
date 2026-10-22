@@ -77,3 +77,23 @@ class LeaveWithdrawView(APIView):
         actor_id = getattr(request, "principal").user_id 
         app = services.withdraw_leave(pk, actor_id)
         return Response(s.LeaveApplicationSerializer(app).data)
+
+
+
+class LeaveCancelView(APIView):
+    """EL-UC-008: Request Cancellation of Approved Leave"""
+    permission_classes = [MODULE]
+    
+    def post(self, request, pk):
+        actor = getattr(request, "principal")
+        app = services.request_cancellation(pk, actor.user_id)
+        return Response(s.LeaveApplicationSerializer(app).data)
+
+class ResumptionReviewView(APIView):
+    """EL-UC-011: Review Resumption"""
+    permission_classes = [MODULE, HasPermission("elm.sanction_leave")]
+    
+    def post(self, request, pk):
+        actor = getattr(request, "principal")
+        app = services.review_resumption(pk, actor.user_id)
+        return Response(s.LeaveApplicationSerializer(app).data)    
